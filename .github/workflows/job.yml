@@ -3,7 +3,7 @@ on: workflow_call
 jobs:
     build:
         runs-on: ubuntu-latest
-        timeout-minutes: 355
+        timeout-minutes: 300
         permissions:
             contents: write
         strategy:

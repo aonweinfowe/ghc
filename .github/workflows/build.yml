@@ -10,6 +10,10 @@ jobs:
         needs: build0
         if: ${{!cancelled()}}
         uses: ./.github/workflows/job.yml
+    build2:
+        needs: build1
+        if: ${{!cancelled()}}
+        uses: ./.github/workflows/job.yml
     clean:
         runs-on: ubuntu-latest
         permissions:

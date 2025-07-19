@@ -38,6 +38,34 @@ jobs:
         needs: build7
         if: ${{!cancelled()}}
         uses: ./.github/workflows/job.yml
+    build9:
+        needs: build8
+        if: ${{!cancelled()}}
+        uses: ./.github/workflows/job.yml
+    build10:
+        needs: build9
+        if: ${{!cancelled()}}
+        uses: ./.github/workflows/job.yml
+    build11:
+        needs: build10
+        if: ${{!cancelled()}}
+        uses: ./.github/workflows/job.yml
+    build12:
+        needs: build11
+        if: ${{!cancelled()}}
+        uses: ./.github/workflows/job.yml
+    build13:
+        needs: build12
+        if: ${{!cancelled()}}
+        uses: ./.github/workflows/job.yml
+    build14:
+        needs: build13
+        if: ${{!cancelled()}}
+        uses: ./.github/workflows/job.yml
+    build15:
+        needs: build14
+        if: ${{!cancelled()}}
+        uses: ./.github/workflows/job.yml
     clean:
         runs-on: ubuntu-latest
         permissions:
